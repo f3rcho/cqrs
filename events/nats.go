@@ -45,6 +45,12 @@ func (n *NatsEventStore) encodeMessage(m Message) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func (n *NatsEventStore) decodeMessage(data []byte, m interface{}) error {
+	b := bytes.Buffer{}
+	b.Write(data)
+	return gob.NewDecoder(&b).Decode(m)
+}
+
 func (n *NatsEventStore) PublishCreatedFeed(ctx context.Context, feed *models.Feed) error {
 	msg := CreatedFeedMessage{
 		ID:          feed.ID,
@@ -57,4 +63,36 @@ func (n *NatsEventStore) PublishCreatedFeed(ctx context.Context, feed *models.Fe
 		return err
 	}
 	return n.conn.Publish(msg.Type(), data)
+}
+
+func (n *NatsEventStore) OnCreatedFeed(f func(CreatedFeedMessage)) (err error) {
+	msg := CreatedFeedMessage{}
+	n.feedCreatedSub, err = n.conn.Subscribe(msg.Type(), func(m *nats.Msg) {
+		n.decodeMessage(m.Data, m)
+		f(msg)
+	})
+	return
+}
+
+func (n *NatsEventStore) SubscribeCreatedFeed(ctx context.Context) (<-chan CreatedFeedMessage, error) {
+	m := CreatedFeedMessage{}
+	n.feedCreatedChan = make(chan CreatedFeedMessage, 64)
+	ch := make(chan *nats.Msg, 64)
+
+	var err error
+	n.feedCreatedSub, err = n.conn.ChanSubscribe(m.Type(), ch)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		for {
+			select {
+			case msg := <-ch:
+				n.decodeMessage(msg.Data, &m)
+				n.feedCreatedChan <- m
+			}
+		}
+	}()
+	return (<-chan CreatedFeedMessage)(n.feedCreatedChan), nil
 }
