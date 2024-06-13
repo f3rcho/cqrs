@@ -1,0 +1,22 @@
+services:
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=fcordero@acid.cl
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+  postgres:
+    build: './database'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: mydb
+    restart: always
+    ports:
+      - '5432:5432'
+  nats:
+    image: "nats-streaming:0.9.2"
+    restart: always
