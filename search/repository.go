@@ -6,21 +6,21 @@ import (
 	"github.com/f3rcho/cqrs/models"
 )
 
-type Repository interface {
-	InsertFeed(ctx context.Context, feed *models.Feed) error
-	ListFeeds(ctx context.Context) ([]*models.Feed, error)
+type SearchRepository interface {
+	IndexFeed(ctx context.Context, feed models.Feed) error
+	SearchFeed(ctx context.Context, query string) ([]models.Feed, error)
 }
 
-var repository Repository
+var repository SearchRepository
 
-func SetRepository(repo Repository) {
+func SetSearchRepository(repo SearchRepository) {
 	repository = repo
 }
 
-func InsertFeed(ctx context.Context, feed *models.Feed) error {
-	return repository.InsertFeed(ctx, feed)
+func IndexFeed(ctx context.Context, feed models.Feed) error {
+	return repository.IndexFeed(ctx, feed)
 }
 
-func ListFeeds(ctx context.Context) ([]*models.Feed, error) {
-	return repository.ListFeeds(ctx)
+func SearchFeed(ctx context.Context, query string) ([]models.Feed, error) {
+	return repository.SearchFeed(ctx, query)
 }
