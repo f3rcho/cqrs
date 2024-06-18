@@ -19,3 +19,7 @@ go get github.com/kelseyhightower/envconfig
 ```bash
 go get github.com/segmentio/ksuid
 ```
+# websockets
+```go
+go get github.com/gorilla/websocket
+```
