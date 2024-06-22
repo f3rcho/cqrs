@@ -15,7 +15,7 @@ COPY database database
 COPY events events
 COPY feed-service feed-service
 COPY models models
-COPY repositotory repositotory
+COPY repository repository
 COPY search search
 COPY query-service query-service
 COPY pusher-service pusher-service
